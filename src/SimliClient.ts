@@ -3,7 +3,7 @@ import axios from 'axios'
 
 export interface SimliClientConfig {
   apiKey: string
-  faceID: string
+  faceId: string
   handleSilence: boolean
   videoRef: React.RefObject<HTMLVideoElement>
   audioRef: React.RefObject<HTMLAudioElement>
@@ -16,7 +16,7 @@ export class SimliClient extends EventEmitter {
   private candidateCount: number = 0
   private prevCandidateCount: number = -1
   private apiKey: string = ''
-  private faceID: string = ''
+  private faceId: string = ''
   private handleSilence: boolean = true
   private videoRef: React.RefObject<HTMLVideoElement> | null = null
   private audioRef: React.RefObject<HTMLAudioElement> | null = null
@@ -34,13 +34,13 @@ export class SimliClient extends EventEmitter {
     console.log('=== SimliClient.Initialize START ===')
     console.log('Config received:', {
       apiKey: config.apiKey ? `[SET: ${config.apiKey.length} chars]` : '[NOT SET]',
-      faceID: config.faceID,
+      faceId: config.faceId,
       handleSilence: config.handleSilence
     })
 
     // Store values
     this.apiKey = config.apiKey
-    this.faceID = config.faceID
+    this.faceId = config.faceId
     this.handleSilence = config.handleSilence
     this.videoRef = config.videoRef
     this.audioRef = config.audioRef
@@ -48,7 +48,7 @@ export class SimliClient extends EventEmitter {
     // Log stored values
     console.log('Values stored in SimliClient:', {
       apiKey: this.apiKey ? `[SET: ${this.apiKey.length} chars]` : '[NOT SET]',
-      faceID: this.faceID,
+      faceId: this.faceId,
       handleSilence: this.handleSilence
     })
     console.log('=== SimliClient.Initialize END ===')
@@ -182,12 +182,12 @@ export class SimliClient extends EventEmitter {
     console.log('=== initializeSession START ===')
     console.log('Current SimliClient state:', {
       apiKey: this.apiKey ? `[SET: ${this.apiKey.length} chars]` : '[NOT SET]',
-      faceID: this.faceID,
+      faceId: this.faceId,
       handleSilence: this.handleSilence
     })
 
     const metadata = {
-      faceID: this.faceID,
+      faceId: this.faceId,
       isJPG: false,
       apiKey: this.apiKey,
       syncAudio: true,
@@ -206,7 +206,7 @@ export class SimliClient extends EventEmitter {
         length: requestBody.length,
         preview: requestBody.substring(0, 50) + '...',
         hasApiKey: requestBody.includes('"apiKey"'),
-        hasFaceID: requestBody.includes('"faceID"')
+        hasFaceId: requestBody.includes('"faceId"')
       })
 
       const response = await fetch('https://api.simli.ai/startAudioToVideoSession', {

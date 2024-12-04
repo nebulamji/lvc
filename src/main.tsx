@@ -85,7 +85,7 @@ const App = () => {
 
       const SimliConfig = {
         apiKey: sk,
-        faceID: SIMLI_FACE_ID,
+        faceId: SIMLI_FACE_ID,
         handleSilence: true,
         videoRef: videoRef,
         audioRef: audioRef,
@@ -93,7 +93,7 @@ const App = () => {
 
       console.log('SimliConfig created:', {
         apiKey: SimliConfig.apiKey ? `[SET: ${SimliConfig.apiKey.length} chars]` : '[NOT SET]',
-        faceID: SimliConfig.faceID,
+        faceId: SimliConfig.faceId,
         handleSilence: SimliConfig.handleSilence
       })
 
