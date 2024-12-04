@@ -2,8 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
-
-import { SimliClient } from './SimliClient'
+import { SimliClient } from '@simliai/simli-client'
 
 // Log environment variables
 console.log('=== Environment Variables ===')
@@ -19,14 +18,13 @@ console.log('sk after assignment:', {
 })
 
 const e11 = import.meta.env.VITE_ELEVENLABS_API_KEY
-
 const completionEndpoint = import.meta.env?.VITE_COMPLETION_ENDPOINT || 'http://localhost:3000'
 
 import './styles.css'
 
 const AGENT_ID = 'b850bc30-45f8-0041-a00a-83df46d8555d'
 const SIMLI_FACE_ID = '370b1e0f-86b9-4040-aaba-dab636f11f53'
-const ELEVENLABS_VOICE_ID = '21m00Tcm4TlvDq8ikWAM'
+const ELEVENLABS_VOICE_ID = 'FaQ1mOmswLeENcFz2iJq'
 
 // Log constants
 console.log('Using constants:', {
@@ -35,7 +33,13 @@ console.log('Using constants:', {
   ELEVENLABS_VOICE_ID
 })
 
-const simliClient = new SimliClient()
+const simliClient = new SimliClient({
+  sessionId: uuidv4(),
+  characterId: AGENT_ID,
+  apiKey: sk,
+  faceId: SIMLI_FACE_ID,
+  service: 'eliza'
+})
 
 const App = () => {
   const [inputText, setInputText] = useState('')
@@ -74,43 +78,20 @@ const App = () => {
     }
   }, [])
 
-  const initializeSimliClient = useCallback(() => {
-    if (videoRef.current && audioRef.current) {
-      console.log('=== Initializing SimliClient ===')
-      console.log('sk before config:', {
-        value: sk,
-        type: typeof sk,
-        length: sk?.length
-      })
-
-      const SimliConfig = {
-        apiKey: sk,
-        faceId: SIMLI_FACE_ID,
-        handleSilence: true,
-        videoRef: videoRef,
-        audioRef: audioRef,
-      }
-
-      console.log('SimliConfig created:', {
-        apiKey: SimliConfig.apiKey ? `[SET: ${SimliConfig.apiKey.length} chars]` : '[NOT SET]',
-        faceId: SimliConfig.faceId,
-        handleSilence: SimliConfig.handleSilence
-      })
-
-      simliClient.Initialize(SimliConfig)
-    }
-  }, [])
-
   const handleStart = useCallback(() => {
-    simliClient.start()
-    setStartWebRTC(true)
-    setIsLoading(true)
-    setIsConnecting(true)
+    simliClient.startSession()
+      .then(() => {
+        setStartWebRTC(true)
+        setIsLoading(true)
+        setIsConnecting(true)
+      })
+      .catch((error) => {
+        console.error('Failed to start session:', error)
+        setError('Failed to start Simli session. Please try again.')
+      })
   }, [])
 
   useEffect(() => {
-    initializeSimliClient()
-
     const handleConnected = () => {
       console.log('SimliClient is now connected!')
     }
@@ -119,34 +100,22 @@ const App = () => {
       console.log('SimliClient has disconnected!')
     }
 
-    const handleFailed = () => {
-      console.log('SimliClient has failed to connect!')
-      setError('Failed to connect to Simli. Please try again.')
-    }
-
-    const handleStarted = () => {
-      console.log('SimliClient has started!')
-      setIsLoading(false)
-      setIsConnecting(false)
-
-      // Send initial audio data after we get the started event
-      const audioData = new Uint8Array(6000).fill(0)
-      simliClient.sendAudioData(audioData)
+    const handleError = (error: Error) => {
+      console.error('SimliClient error:', error)
+      setError('Connection error. Please try again.')
     }
 
     simliClient.on('connected', handleConnected)
     simliClient.on('disconnected', handleDisconnected)
-    simliClient.on('failed', handleFailed)
-    simliClient.on('started', handleStarted)
+    simliClient.on('error', handleError)
 
     return () => {
       simliClient.off('connected', handleConnected)
       simliClient.off('disconnected', handleDisconnected)
-      simliClient.off('failed', handleFailed)
-      simliClient.off('started', handleStarted)
+      simliClient.off('error', handleError)
       simliClient.close()
     }
-  }, [initializeSimliClient])
+  }, [])
 
   const processInput = useCallback(async (text: any) => {
     setIsLoading(true)
